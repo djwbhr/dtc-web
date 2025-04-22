@@ -118,7 +118,7 @@ export const HomePage = () => {
               borderBottom: "1px solid #eaeaea",
             }}
           >
-            Новости технологий
+            Новости
           </Typography>
 
           <Box sx={{ maxWidth: 800, mx: "auto", my: 3, px: 2 }}>
