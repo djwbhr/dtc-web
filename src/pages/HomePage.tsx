@@ -57,14 +57,24 @@ export const HomePage = () => {
           );
         }
         if (filters.dateFrom) {
-          filteredArticles = filteredArticles.filter(
-            (article) => new Date(article.publishedAt) >= filters.dateFrom!
-          );
+          filteredArticles = filteredArticles.filter((article) => {
+            const articleDate = new Date(article.publishedAt);
+            const filterDate = new Date(filters.dateFrom!);
+            // Сбрасываем время для корректного сравнения дат
+            articleDate.setHours(0, 0, 0, 0);
+            filterDate.setHours(0, 0, 0, 0);
+            return articleDate >= filterDate;
+          });
         }
         if (filters.dateTo) {
-          filteredArticles = filteredArticles.filter(
-            (article) => new Date(article.publishedAt) <= filters.dateTo!
-          );
+          filteredArticles = filteredArticles.filter((article) => {
+            const articleDate = new Date(article.publishedAt);
+            const filterDate = new Date(filters.dateTo!);
+            // Сбрасываем время для корректного сравнения дат
+            articleDate.setHours(0, 0, 0, 0);
+            filterDate.setHours(0, 0, 0, 0);
+            return articleDate <= filterDate;
+          });
         }
 
         setArticles(filteredArticles, !isNewSearch);
