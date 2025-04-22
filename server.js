@@ -17,28 +17,32 @@ const PORT = 3001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Настройка CORS для React Native
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-app.use(express.json());
-
-// Middleware для логирования запросов
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  next();
-});
-
 // Создаем папку для загрузок, если её нет
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
+
+// Настройка CORS для React Native
+app.use(cors({
+  origin: '*',  // Разрешаем запросы с любых источников
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+
+// Увеличиваем лимит для загрузки файлов
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Настройка multer для загрузки файлов
 const storage = multer.diskStorage({
@@ -50,7 +54,63 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+  }
+});
+
+// Middleware для логирования запросов
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('Body:', req.body);
+  }
+  next();
+});
+
+// Роут для загрузки файлов
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  try {
+    console.log('Upload request received');
+    console.log('Request headers:', req.headers);
+    console.log('Request file:', req.file);
+    console.log('Request body:', req.body);
+
+    if (!req.file) {
+      console.log('No file received');
+      return res.status(400).json({ 
+        success: false,
+        message: 'Файл не был загружен' 
+      });
+    }
+
+    console.log('File uploaded:', {
+      filename: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path
+    });
+
+    res.json({
+      success: true,
+      message: 'Файл успешно загружен',
+      data: {
+        url: `/uploads/${req.file.filename}`,
+        filename: req.file.filename,
+        size: req.file.size
+      }
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ошибка при загрузке файла',
+      error: error.message
+    });
+  }
+});
 
 // Прокси для новостей
 app.get('/api/news', async (req, res) => {
@@ -84,41 +144,6 @@ app.get('/api/news', async (req, res) => {
     res.status(500).json({ 
       error: 'Failed to fetch news',
       details: error.message 
-    });
-  }
-});
-
-// Роут для загрузки файлов
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Файл не был загружен' 
-      });
-    }
-
-    console.log('File uploaded:', {
-      filename: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path
-    });
-
-    res.json({
-      success: true,
-      message: 'Файл успешно загружен',
-      data: {
-        url: `/uploads/${req.file.filename}`,
-        filename: req.file.filename,
-        size: req.file.size
-      }
-    });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Ошибка при загрузке файла',
-      error: error.message
     });
   }
 });
@@ -199,12 +224,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log('Available endpoints:');
-  console.log(`- GET http://localhost:${PORT}/api/news`);
-  console.log(`- POST http://localhost:${PORT}/api/upload`);
-  console.log(`- DELETE http://localhost:${PORT}/api/upload/:filename`);
-  console.log(`- GET http://localhost:${PORT}/uploads/:filename`);
-  console.log(`- GET http://localhost:${PORT}/api/files`);
+// Запуск сервера
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Upload directory: ${uploadDir}`);
 }); 
