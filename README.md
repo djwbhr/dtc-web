@@ -5,7 +5,7 @@ React-приложение для просмотра новостей с исп�
 ## Требования
 
 - Node.js (версия 14 или выше)
-- npm или yarn
+- npm или bun
 - API ключ от News API
 
 ## Установка
@@ -105,7 +105,3 @@ npm run dev
      npm uninstall express cors axios dotenv
      npm install express@4.18.2 cors@2.8.5 axios@1.6.2 dotenv@16.3.1
      ```
-
-## Лицензия
-
-MIT
