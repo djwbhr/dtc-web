@@ -1,99 +1,85 @@
 import axios from "axios";
 
-const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
-const BASE_URL = "https://newsapi.org/v2";
-const MAX_RESULTS = 100; // Максимальное количество результатов от API
-const PAGE_SIZE = 10; // Количество статей на странице
-
-console.log('API Key loaded:', API_KEY ? 'Yes' : 'No');
-
-if (!API_KEY) {
-  console.error('API key is missing! Make sure VITE_NEWS_API_KEY is set in your .env file');
-}
-
 interface NewsArticle {
-  source: {
-    id: string | null;
-    name: string;
-  };
-  author: string;
   title: string;
   description: string;
   url: string;
   urlToImage: string;
   publishedAt: string;
-  content: string;
-  id?: string;
+  source: {
+    name: string;
+  };
 }
 
 interface NewsResponse {
-  status: string;
-  totalResults: number;
   articles: NewsArticle[];
-  message?: string;
+  totalResults: number;
 }
 
-export const getNews = async (page: number, query?: string) => {
-  try {
-    // Проверяем, не превысим ли мы лимит
-    if ((page - 1) * PAGE_SIZE >= MAX_RESULTS) {
-      return {
-        status: 'ok',
-        totalResults: MAX_RESULTS,
-        articles: [],
-      };
-    }
+const API_URL = "http://192.168.1.161:3001/api/news"; // Замените на ваш IP-адрес
 
-    const response = await axios.get<NewsResponse>(`${BASE_URL}/everything`, {
+export const getNews = async (page: number, query: string = ""): Promise<NewsResponse> => {
+  try {
+    console.log(`Fetching news: page=${page}, query=${query}`);
+    const response = await axios.get(API_URL, {
       params: {
-        language: 'ru',
-        q: query || "technology",
         page,
-        pageSize: PAGE_SIZE,
-        apiKey: API_KEY,
+        query,
       },
-      timeout: 5000,
-      validateStatus: (status) => status >= 200 && status < 300,
+      timeout: 10000, // Увеличиваем таймаут
+      validateStatus: (status) => status < 500, // Принимаем все статусы кроме 5xx
     });
 
-    if (!response?.data) {
-      throw new Error('No data received from API');
-    }
+    console.log('API Response:', {
+      status: response.status,
+      data: response.data
+    });
 
-    if (response.data.status === 'error') {
-      throw new Error(response.data.message || 'Failed to fetch news');
+    if (!response.data || !Array.isArray(response.data.articles)) {
+      console.error('Invalid response format:', response.data);
+      throw new Error("Invalid response format from API");
     }
-
-    if (!response.data.articles || !Array.isArray(response.data.articles)) {
-      throw new Error('Invalid articles data received');
-    }
-
-    const articles = response.data.articles.map((article: NewsArticle, index: number) => ({
-      ...article,
-      id: article.id || `${Date.now()}-${page}-${index}`,
-      description: article.description || 'Описание отсутствует',
-      urlToImage: article.urlToImage || 'https://via.placeholder.com/400x200?text=No+Image',
-      author: article.author || 'Автор не указан',
-    }));
 
     return {
-      ...response.data,
-      articles,
-      totalResults: Math.min(response.data.totalResults, MAX_RESULTS), // Ограничиваем общее количество результатов
+      articles: response.data.articles.map((article: NewsArticle) => ({
+        title: article.title || "Без заголовка",
+        description: article.description || "Нет описания",
+        url: article.url || "#",
+        urlToImage: article.urlToImage || "https://via.placeholder.com/300x200",
+        publishedAt: article.publishedAt || new Date().toISOString(),
+        source: {
+          name: article.source?.name || "Неизвестный источник",
+        },
+      })),
+      totalResults: response.data.totalResults || 0,
     };
   } catch (error) {
+    console.error('News API Error:', error);
+    
     if (axios.isAxiosError(error)) {
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Timeout: сервер не отвечает, попробуйте позже');
+      console.error('Axios error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        code: error.code
+      });
+
+      if (error.code === "ECONNABORTED") {
+        throw new Error("Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.");
+      }
+      if (error.code === "ERR_NETWORK") {
+        throw new Error("Ошибка сети. Проверьте подключение к интернету и убедитесь, что прокси-сервер запущен.");
       }
       if (error.response?.status === 401) {
-        throw new Error('Ошибка авторизации: проверьте API ключ');
+        throw new Error("Ошибка авторизации. Проверьте API ключ.");
       }
       if (error.response?.status === 429) {
-        throw new Error('Превышен лимит запросов к API');
+        throw new Error("Превышен лимит запросов. Попробуйте позже.");
       }
-      throw new Error(`Ошибка сети: ${error.message}`);
+      if (error.response?.data?.error) {
+        throw new Error(`Ошибка сервера: ${error.response.data.error}`);
+      }
     }
-    throw error;
+    throw new Error("Произошла ошибка при загрузке новостей");
   }
 };

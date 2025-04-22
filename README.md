@@ -1,54 +1,111 @@
-# React + TypeScript + Vite
+# News Web Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React-приложение для просмотра новостей с использованием News API.
 
-Currently, two official plugins are available:
+## Требования
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js (версия 14 или выше)
+- npm или yarn
+- API ключ от News API
 
-## Expanding the ESLint configuration
+## Установка
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Клонируйте репозиторий:
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+git clone <repository-url>
+cd dtc-web
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Установите зависимости:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm install
 ```
+
+3. Создайте файл `.env` в корневой директории проекта и добавьте ваш API ключ:
+
+```
+VITE_NEWS_API_KEY=ваш_api_ключ
+```
+
+## Запуск приложения
+
+### Локальная разработка
+
+Для локальной разработки необходимо запустить два сервера:
+
+1. **Прокси-сервер** (в первом терминале):
+
+```bash
+node server.js
+```
+
+Прокси-сервер будет доступен по адресу: `http://ВАШ_IP_АДРЕС:3001`
+
+2. **React-приложение** (во втором терминале):
+
+```bash
+npm run dev
+```
+
+Приложение будет доступно по адресу: `http://ВАШ_IP_АДРЕС:5173`
+
+### Настройка для доступа с других устройств
+
+1. Найдите ваш локальный IP-адрес:
+
+```bash
+ipconfig
+```
+
+Ищите IPv4-адрес в разделе "Адаптер беспроводной локальной сети" или "Ethernet adapter". Это будет что-то вроде `192.168.1.xxx`.
+
+2. Обновите IP-адрес в файле `src/services/newsApi.ts`:
+
+```typescript
+const API_URL = "http://ВАШ_IP_АДРЕС:3001/api/news";
+```
+
+3. Запустите серверы:
+
+```bash
+# Прокси-сервер
+node server.js
+
+# React-приложение
+npm run dev
+```
+
+4. Приложение будет доступно по адресу: `http://ВАШ_IP_АДРЕС:5173`
+
+### Подключение React Native приложения
+
+1. Убедитесь, что мобильное устройство находится в той же Wi-Fi сети
+
+## Устранение неполадок
+
+1. **Ошибка 426 (Not Acceptable)**
+
+   - Убедитесь, что прокси-сервер запущен
+   - Проверьте правильность API ключа в файле .env
+
+2. **Ошибка подключения с других устройств**
+
+   - Проверьте, что устройства находятся в одной сети
+   - Убедитесь, что брандмауэр не блокирует подключения
+   - Проверьте правильность IP-адреса в `newsApi.ts`
+   - Убедитесь, что порты 3001 и 5173 открыты в брандмауэре
+
+3. **Ошибки при запуске прокси-сервера**
+   - Убедитесь, что все зависимости установлены
+   - Проверьте, что порт 3001 не занят другим приложением
+   - Если возникает ошибка с модулями, попробуйте переустановить зависимости:
+     ```bash
+     npm uninstall express cors axios dotenv
+     npm install express@4.18.2 cors@2.8.5 axios@1.6.2 dotenv@16.3.1
+     ```
+
+## Лицензия
+
+MIT
