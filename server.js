@@ -212,8 +212,18 @@ app.get('/api/files', (req, res) => {
   }
 });
 
-// Роут для статических файлов
-app.use('/uploads', express.static(uploadDir));
+// Настройка статических файлов с заголовками для скачивания
+app.use('/uploads', (req, res, next) => {
+  const filePath = path.join(uploadDir, req.path);
+  
+  // Проверяем существование файла
+  if (fs.existsSync(filePath)) {
+    // Устанавливаем заголовки для скачивания
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Content-Type', 'application/octet-stream');
+  }
+  next();
+}, express.static(uploadDir));
 
 // Обработчик ошибок
 app.use((err, req, res, next) => {

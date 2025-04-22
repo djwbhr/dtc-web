@@ -10,10 +10,12 @@ import {
   ListItemIcon,
   IconButton,
   CircularProgress,
+  Link,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
   InsertDriveFile as FileIcon,
+  Download as DownloadIcon,
 } from "@mui/icons-material";
 import { FileUpload } from "../components/FileUpload";
 import {
@@ -98,6 +100,19 @@ export const UploadPage = () => {
     }
   };
 
+  const handleDownload = (filename: string) => {
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const cleanBaseUrl = baseUrl.endsWith("/api")
+      ? baseUrl.slice(0, -4)
+      : baseUrl;
+
+    const downloadUrl = `${cleanBaseUrl}/uploads/${filename}`;
+    console.log("Download URL:", downloadUrl);
+
+    // Открываем файл напрямую в новом окне/вкладке
+    window.open(downloadUrl, "_blank");
+  };
+
   return (
     <Box sx={{ maxWidth: 800, mx: "auto", p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -140,21 +155,39 @@ export const UploadPage = () => {
               <ListItem
                 key={index}
                 secondaryAction={
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => handleDeleteFile(index)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Box>
+                    <IconButton
+                      edge="end"
+                      aria-label="download"
+                      onClick={() =>
+                        file.data?.filename &&
+                        handleDownload(file.data.filename)
+                      }
+                      sx={{ mr: 1 }}
+                    >
+                      <DownloadIcon />
+                    </IconButton>
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={() => handleDeleteFile(index)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
                 }
                 sx={{
                   "& .MuiListItemText-primary": {
                     width: "100%",
-                    maxWidth: "calc(100% - 80px)", // Оставляем место для кнопки
+                    maxWidth: "calc(100% - 120px)",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
+                    cursor: "pointer",
+                    "&:hover": {
+                      textDecoration: "underline",
+                      color: "primary.main",
+                    },
                   },
                 }}
               >
@@ -162,9 +195,20 @@ export const UploadPage = () => {
                   <FileIcon />
                 </ListItemIcon>
                 <ListItemText
-                  primary={truncateFileName(
-                    file.data?.filename || `Файл ${index + 1}`
-                  )}
+                  primary={
+                    <Link
+                      component="span"
+                      onClick={() =>
+                        file.data?.filename &&
+                        handleDownload(file.data.filename)
+                      }
+                      sx={{ cursor: "pointer" }}
+                    >
+                      {truncateFileName(
+                        file.data?.filename || `Файл ${index + 1}`
+                      )}
+                    </Link>
+                  }
                   secondary={`Размер: ${((file.data?.size || 0) / 1024).toFixed(
                     2
                   )} KB`}
