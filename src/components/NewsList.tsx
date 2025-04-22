@@ -21,17 +21,14 @@ export const NewsList = ({
   const lastArticleRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loading) return;
-
-      if (observer.current) {
+      if (observer.current && loading) {
         observer.current.disconnect();
       }
-
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
           onLoadMore();
         }
       });
-
       if (node) {
         observer.current.observe(node);
       }
@@ -54,14 +51,18 @@ export const NewsList = ({
         width: "100%",
       }}
     >
-      {articles.map((article, index) => (
-        <Box
-          key={article.id}
-          ref={index === articles.length - 1 ? lastArticleRef : null}
-        >
-          <NewsCard article={article} />
-        </Box>
-      ))}
+      {articles.map((article, index) => {
+        const isLastArticle = index === articles.length - 1;
+        return (
+          <Box
+            key={`${article.url}-${index}`}
+            ref={isLastArticle ? lastArticleRef : null} // вот тут прикрепляем ref к последнему элементу
+          >
+            <NewsCard article={article} />
+          </Box>
+        );
+      })}
+
       {loading && (
         <Box
           sx={{

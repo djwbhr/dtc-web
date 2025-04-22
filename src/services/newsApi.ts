@@ -1,19 +1,16 @@
 import axios from "axios";
+import type { NewsResponse } from "../types/news";
 
-interface NewsArticle {
-  title: string;
-  description: string;
-  url: string;
-  urlToImage: string;
-  publishedAt: string;
-  source: {
-    name: string;
+interface ApiArticle {
+  title?: string;
+  description?: string;
+  url?: string;
+  urlToImage?: string;
+  publishedAt?: string;
+  author?: string;
+  source?: {
+    name?: string;
   };
-}
-
-interface NewsResponse {
-  articles: NewsArticle[];
-  totalResults: number;
 }
 
 const API_URL = "http://192.168.1.161:3001/api/news"; // Замените на ваш IP-адрес
@@ -41,17 +38,20 @@ export const getNews = async (page: number, query: string = ""): Promise<NewsRes
     }
 
     return {
-      articles: response.data.articles.map((article: NewsArticle) => ({
+      articles: response.data.articles.map((article: ApiArticle, index: number) => ({
+        id: article.url || `article-${index}-${Date.now()}`,
         title: article.title || "Без заголовка",
         description: article.description || "Нет описания",
         url: article.url || "#",
         urlToImage: article.urlToImage || "https://via.placeholder.com/300x200",
         publishedAt: article.publishedAt || new Date().toISOString(),
+        author: article.author || "Неизвестный автор",
         source: {
           name: article.source?.name || "Неизвестный источник",
         },
       })),
       totalResults: response.data.totalResults || 0,
+      status: response.data.status || "ok",
     };
   } catch (error) {
     console.error('News API Error:', error);

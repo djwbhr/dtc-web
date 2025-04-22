@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Container, Box, Typography, Alert, Button } from "@mui/material";
+import { Box, Typography, Alert, Button } from "@mui/material";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { NewsList } from "../components/NewsList";
 import { SearchBar } from "../components/SearchBar";
@@ -70,7 +70,7 @@ export const HomePage = () => {
   // Начальная загрузка
   useEffect(() => {
     fetchNews(1, true);
-  }, [searchQuery]);
+  }, [searchQuery, fetchNews]);
 
   // Функция для загрузки следующей страницы
   const handleLoadMore = useCallback(() => {
@@ -84,100 +84,69 @@ export const HomePage = () => {
   };
 
   return (
-    <Box
-      sx={{
-        bgcolor: "#f5f5f5",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        width: "100vw",
-        margin: 0,
-        padding: 0,
-      }}
-    >
-      <Container
-        disableGutters
-        maxWidth={false}
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          p: 0,
-        }}
+    <Box sx={{ width: "100%" }}>
+      <Typography
+        variant="h4"
+        component="h1"
+        align="center"
+        sx={{ mt: 2, mb: 3 }}
       >
-        <Box sx={{ width: "100%", p: 0 }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            gutterBottom
-            sx={{
-              py: 3,
-              textAlign: "center",
-              bgcolor: "white",
-              borderBottom: "1px solid #eaeaea",
-            }}
-          >
-            Новости
-          </Typography>
+        Новости
+      </Typography>
 
-          <Box sx={{ maxWidth: 800, mx: "auto", my: 3, px: 2 }}>
-            <SearchBar
-              value={searchQuery}
-              onChange={(value) => {
-                setSearchQuery(value);
-                setCurrentPage(1);
-              }}
-            />
-          </Box>
+      <Box sx={{ maxWidth: 800, mx: "auto", mb: 3 }}>
+        <SearchBar
+          value={searchQuery}
+          onChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+        />
+      </Box>
 
-          {errorMessage && (
-            <Box sx={{ maxWidth: 800, mx: "auto", px: 2 }}>
-              <Alert
-                severity="error"
-                sx={{ mb: 3 }}
-                action={
-                  <Button
-                    color="inherit"
-                    size="small"
-                    startIcon={<RefreshIcon />}
-                    onClick={handleRetry}
-                  >
-                    Повторить
-                  </Button>
-                }
+      {errorMessage && (
+        <Box sx={{ maxWidth: 800, mx: "auto", mb: 3 }}>
+          <Alert
+            severity="error"
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={handleRetry}
               >
-                {errorMessage}
-              </Alert>
-            </Box>
-          )}
-
-          {!loading && !errorMessage && articles.length === 0 && (
-            <Box sx={{ maxWidth: 800, mx: "auto", px: 2 }}>
-              <Alert severity="info" sx={{ mb: 3 }}>
-                Новости не найдены. Попробуйте изменить параметры поиска.
-              </Alert>
-            </Box>
-          )}
-
-          <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, width: "100%" }}>
-            <NewsList
-              articles={articles}
-              loading={loading}
-              onLoadMore={handleLoadMore}
-              hasMore={hasMore}
-            />
-          </Box>
-          {articles.length >= MAX_RESULTS && (
-            <Box sx={{ maxWidth: 800, mx: "auto", px: 2, mt: 3 }}>
-              <Alert severity="info">
-                Достигнут лимит отображаемых новостей (100). Попробуйте уточнить
-                поисковый запрос.
-              </Alert>
-            </Box>
-          )}
+                Повторить
+              </Button>
+            }
+          >
+            {errorMessage}
+          </Alert>
         </Box>
-      </Container>
+      )}
+
+      {!loading && !errorMessage && articles.length === 0 && (
+        <Box sx={{ maxWidth: 800, mx: "auto", mb: 3 }}>
+          <Alert severity="info">
+            Новости не найдены. Попробуйте изменить параметры поиска.
+          </Alert>
+        </Box>
+      )}
+
+      <NewsList
+        articles={articles}
+        loading={loading}
+        onLoadMore={handleLoadMore}
+        hasMore={hasMore}
+      />
+
+      {articles.length >= MAX_RESULTS && (
+        <Box sx={{ maxWidth: 800, mx: "auto", mt: 3 }}>
+          <Alert severity="info">
+            Достигнут лимит отображаемых новостей (100). Попробуйте уточнить
+            поисковый запрос.
+          </Alert>
+        </Box>
+      )}
     </Box>
   );
 };
