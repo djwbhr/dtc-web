@@ -24,7 +24,7 @@ interface FileUploadProps {
 export const FileUpload = ({
   multiple = false,
   accept = "*",
-  maxSize = 5 * 1024 * 1024, // 5MB по умолчанию
+  maxSize = 50 * 1024 * 1024, // 5MB по умолчанию
   onUploadSuccess,
   onUploadError,
 }: FileUploadProps) => {
@@ -132,10 +132,6 @@ export const FileUpload = ({
           {isUploading ? "Загрузка..." : "Выберите файл"}
         </Button>
       </label>
-
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-        или перетащите файл сюда
-      </Typography>
 
       {error && (
         <Alert severity="error" sx={{ mt: 2 }}>
