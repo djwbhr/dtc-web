@@ -1,4 +1,10 @@
-# Logs
+# Зависимости
+node_modules
+dist
+dist-ssr
+*.local
+
+# Логи
 logs
 *.log
 npm-debug.log*
@@ -7,12 +13,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# Директории и файлы редактора
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -28,3 +29,21 @@ dist-ssr
 .env.local
 .env.development
 .env.production
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Продакшн сборка
+/build
+/dist
+
+# Системные файлы
+.DS_Store
+
+# Файлы IDE
+.idea
+.vscode
+
+# Загруженные файлы
+/uploads
+uploads/

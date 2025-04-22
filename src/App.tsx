@@ -19,6 +19,7 @@ import { createTheme } from "@mui/material/styles";
 import { Link as RouterLink } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { FavoritesPage } from "./pages/FavoritesPage";
+import { UploadPage } from "./pages/UploadPage";
 import { useState } from "react";
 
 const defaultTheme = createTheme({
@@ -73,6 +74,7 @@ function App() {
   const menuItems = [
     { text: "ГЛАВНАЯ", path: "/" },
     { text: "ИЗБРАННОЕ", path: "/favorites" },
+    { text: "ЗАГРУЗИТЬ", path: "/upload" },
   ];
 
   return (
@@ -133,6 +135,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/upload" element={<UploadPage />} />
           </Routes>
         </Container>
       </Router>
