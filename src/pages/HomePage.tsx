@@ -11,9 +11,16 @@ const PAGE_SIZE = 10; // Статей на странице
 
 export const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    dateFrom: null as Date | null,
+    dateTo: null as Date | null,
+    source: "",
+  });
   const {
     articles,
     setArticles,
+    sources,
+    setSources,
     loading,
     setLoading,
     hasMore,
@@ -36,12 +43,36 @@ export const HomePage = () => {
         setErrorMessage(null);
         const response = await getNews(page, searchQuery);
 
-        setArticles(response.articles, !isNewSearch);
+        // Обновляем список источников
+        const uniqueSources = Array.from(
+          new Set(response.articles.map((article) => article.source.name))
+        ).sort();
+        setSources(uniqueSources);
+
+        // Применяем фильтры к полученным статьям
+        let filteredArticles = response.articles;
+        if (filters.source) {
+          filteredArticles = filteredArticles.filter(
+            (article) => article.source.name === filters.source
+          );
+        }
+        if (filters.dateFrom) {
+          filteredArticles = filteredArticles.filter(
+            (article) => new Date(article.publishedAt) >= filters.dateFrom!
+          );
+        }
+        if (filters.dateTo) {
+          filteredArticles = filteredArticles.filter(
+            (article) => new Date(article.publishedAt) <= filters.dateTo!
+          );
+        }
+
+        setArticles(filteredArticles, !isNewSearch);
 
         // Проверяем, есть ли еще статьи для загрузки
         const totalLoaded = page * PAGE_SIZE;
         const hasMoreItems =
-          response.articles.length === PAGE_SIZE &&
+          filteredArticles.length === PAGE_SIZE &&
           totalLoaded < Math.min(response.totalResults, MAX_RESULTS);
         setHasMore(hasMoreItems);
 
@@ -64,13 +95,21 @@ export const HomePage = () => {
         setLoading(false);
       }
     },
-    [searchQuery, setArticles, setLoading, setHasMore, setCurrentPage]
+    [
+      searchQuery,
+      setArticles,
+      setSources,
+      setLoading,
+      setHasMore,
+      setCurrentPage,
+      filters,
+    ]
   );
 
   // Начальная загрузка
   useEffect(() => {
     fetchNews(1, true);
-  }, [searchQuery, fetchNews]);
+  }, [searchQuery, filters, fetchNews]);
 
   // Функция для загрузки следующей страницы
   const handleLoadMore = useCallback(() => {
@@ -81,6 +120,17 @@ export const HomePage = () => {
 
   const handleRetry = () => {
     fetchNews(1, true);
+  };
+
+  const handleFilterChange = (newFilters: {
+    dateFrom?: Date | null;
+    dateTo?: Date | null;
+    source?: string;
+  }) => {
+    setFilters((prev) => ({
+      ...prev,
+      ...newFilters,
+    }));
   };
 
   return (
@@ -101,6 +151,8 @@ export const HomePage = () => {
             setSearchQuery(value);
             setCurrentPage(1);
           }}
+          onFilterChange={handleFilterChange}
+          sources={sources}
         />
       </Box>
 

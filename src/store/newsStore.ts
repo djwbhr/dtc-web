@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { NewsArticle } from "../types/news";
 
-interface NewsStore {
+interface NewsState {
   articles: NewsArticle[];
+  sources: string[];
   favorites: NewsArticle[];
   loading: boolean;
   error: string | null;
@@ -13,14 +14,16 @@ interface NewsStore {
   toggleFavorite: (article: NewsArticle) => void;
   isFavorite: (article: NewsArticle) => boolean;
   setArticles: (articles: NewsArticle[], append?: boolean) => void;
+  setSources: (sources: string[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setHasMore: (hasMore: boolean) => void;
   setCurrentPage: (page: number) => void;
 }
 
-export const useNewsStore = create<NewsStore>((set, get) => ({
+export const useNewsStore = create<NewsState>((set, get) => ({
   articles: [],
+  sources: [],
   favorites: [],
   loading: false,
   error: null,
@@ -52,6 +55,7 @@ export const useNewsStore = create<NewsStore>((set, get) => ({
     set((state) => ({
       articles: append ? [...state.articles, ...articles] : articles,
     })),
+  setSources: (sources) => set({ sources }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setHasMore: (hasMore) => set({ hasMore }),
